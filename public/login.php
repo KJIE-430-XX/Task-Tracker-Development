@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         $_SESSION['name'] = $user['name'];
 
                         $stmt->close();
-                        header("Location: index.php");
+                        header("Location: dashboard.php");
                         exit;
                     } else {
                         error_log("Failed login attempt: Invalid password for username '" . htmlspecialchars($username) . "'");
