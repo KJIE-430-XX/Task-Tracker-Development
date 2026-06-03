@@ -62,69 +62,55 @@ if (!isset($_SESSION['user_id'])) {
 
         </div>
 
-        <!-- Welcome Section -->
+        <!-- Task Dashboard Section -->
 
-        <div class="welcome-section">
+<div class="task-dashboard">
 
-            <h2>
-                Welcome back,
-                <?php echo htmlspecialchars($_SESSION['name']); ?>
-                👋
-            </h2>
-
-            <p>
-                Here's an overview of your current tasks.
-            </p>
-
-        </div>
-
-        <!-- Task Dashboard -->
-
-        <div class="task-dashboard">
-
-            <h2>Your Tasks</h2>
-<?php if($result->num_rows > 0): ?>
-
-    <?php while($task = $result->fetch_assoc()): ?>
-
-        <div class="task-card">
-
-            <div class="task-info">
-
-                <h3>
-                    <?php echo htmlspecialchars($task['title']); ?>
-                </h3>
-
-                <p>
-                    <?php echo htmlspecialchars($task['description']); ?>
-                </p>
-
-            </div>
-
-            <span class="status in-progress">
-
-                <?php echo htmlspecialchars($task['status']); ?>
-
-            </span>
-
-        </div>
-
-    <?php endwhile; ?>
-
-<?php else: ?>
+    <h2>My Tasks</h2>
+>>>>>>> 64d356051007ec6ebf039d98e14d36b1ab54ddbb
 
     <div class="task-card">
 
         <div class="task-info">
 
-            <h3>No Tasks Yet</h3>
-
-            <p>
-                Create your first company task.
-            </p>
-
+            <h3>Software Engineering Report</h3>
+            <p>Complete the reflective report documentation.</p>
         </div>
 
+        <span class="status in-progress">
+            In Progress
+        </span>
+
+    </div>
+
+    <div class="task-card">
+
+        <div class="task-info">
+            <h3>Database Setup</h3>
+            <p>Configure MySQL database tables.</p>
+        </div>
+
+        <span class="status done">
+            Done
+        </span>
+
+    </div>
+
+    <div class="task-card">
+
+        <div class="task-info">
+            <h3>UI Design</h3>
+            <p>Improve dashboard appearance and layout.</p>
+        </div>
+
+        <span class="status pending">
+            Pending
+        </span>
+
+    </div>
+
+</div>
+>>>>>>> 64d356051007ec6ebf039d98e14d36b1ab54ddbb
     </div>
 
 <?php endif; ?>
