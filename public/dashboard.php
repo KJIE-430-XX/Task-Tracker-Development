@@ -113,7 +113,7 @@ if (!isset($_SESSION['user_id'])) {
 >>>>>>> 64d356051007ec6ebf039d98e14d36b1ab54ddbb
     </div>
 
-<?php endif; ?>
+
             <!-- Task Card -->
 
            
