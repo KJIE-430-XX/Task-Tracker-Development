@@ -19,7 +19,7 @@ $user_id = $_SESSION['user_id'];
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Dashboard</title>
+    <title>ProManage – Organize, Assign, Deliver</title>
 
     <link rel="stylesheet" href="assets/css/dashboard.css">
 
@@ -33,10 +33,10 @@ $user_id = $_SESSION['user_id'];
 
         <div class="header">
 
-            <h1>Task Management System</h1>
+            <h1>ProManage</h1>
 
             <p class="dashboard-subtitle">
-                Manage your company tasks efficiently and stay productive.
+                Organize, Assign, Deliver
             </p>
 
             <div class="header-actions">
