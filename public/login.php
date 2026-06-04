@@ -66,7 +66,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <link rel="stylesheet" href="assets/css/auth.css">
 </head>
 <body>
-    <div class="container">
+    <div class="auth-container">
+        <div class="system-title">
+            <span class="pro">Pro</span><span class="manage">Manage</span>
+        </div>
         <h1>Login</h1>
         <?php if ($message): ?>
             <div class="message error"><?php echo htmlspecialchars($message); ?></div>
