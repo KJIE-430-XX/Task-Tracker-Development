@@ -19,7 +19,7 @@ if ($isLoggedIn) {
 
 <head>
   <meta charset="utf-8">
-  <title>Homepage - Project Hub</title>
+  <title>ProManage - Homepage</title>
   <link rel="stylesheet" href="assets/css/common.css">
   <link rel="stylesheet" href="assets/css/index.css">
   <style>

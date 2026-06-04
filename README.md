@@ -5,6 +5,9 @@
 
 This project is an internal web-based project management system designed to help teams efficiently organize and manage projects within a company environment. Users first create a high-level project before creating, assigning, prioritizing, and tracking individual tasks within it. By monitoring task progress through stages such as “To Do,” “In Progress,” and “Done,” the system provides clear project visibility, enhances team collaboration, improves workflow organization, and increases overall productivity.
 
+## Introduction
+This system is called ‘ProManage’, which represents organizing, assigning, and delivering. This name also reflects the system's goal of providing a professional and efficient way to manage projects, teams, and tasks. It combines the concepts of project management, productivity, and professional collaboration into a simple and memorable name.
+
 ## Team Members
 
 - CHOW KAI JIE BAI_A2009F-2509001
