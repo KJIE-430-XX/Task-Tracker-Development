@@ -19,7 +19,7 @@ $user_id = $_SESSION['user_id'];
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>ProManage – Organize, Assign, Deliver</title>
+    <title>ProManage - Organize, Assign, Deliver</title>
 
     <link rel="stylesheet" href="assets/css/dashboard.css">
 
