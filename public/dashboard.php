@@ -41,6 +41,10 @@ $user_id = $_SESSION['user_id'];
 
             <div class="header-actions">
 
+                <a href="index.php" class="index-btn">
+                    ⌂ Home
+                </a>
+
                 <a href="project_create.php" class="create-btn">
                     + Create Project
                 </a>
