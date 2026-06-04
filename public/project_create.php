@@ -68,32 +68,46 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ProManage - Create Project</title>
-    <link rel="stylesheet" href="assets/css/common.css">
     <link rel="stylesheet" href="assets/css/task-create.css">
 </head>
 <body>
-<div class="container">
-    <h1>Create New Project</h1>
-    <?php if(!empty($error)): ?><div class="alert alert-error"><?php echo htmlspecialchars($error); ?></div><?php endif; ?>
-    
-    <form method="POST">
-        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generateCSRFToken()); ?>">
-        <div class="form-group">
-            <label>Project Name *</label>
-            <input type="text" name="name" required>
+    <div class="container">
+        <div class="form-container">
+            <div class="form-header">
+                <h1><span class="pro-text">Pro</span><span class="manage-text">Manage</span></h1>
+                <p class="form-subtitle">Create a new project</p>
+            </div>
+
+            <?php if(!empty($error)): ?>
+                <div class="alert alert-error"><?php echo htmlspecialchars($error); ?></div>
+            <?php endif; ?>
+            
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generateCSRFToken()); ?>">
+                
+                <div class="form-group">
+                    <label for="name">Project Name <span class="required">*</span></label>
+                    <input type="text" id="name" name="name" placeholder="Enter project name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" name="description" placeholder="Describe your project..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="due_date">Due Date</label>
+                    <input type="date" id="due_date" name="due_date">
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Create Project</button>
+                    <a href="dashboard.php" class="btn-secondary">Cancel</a>
+                </div>
+            </form>
         </div>
-        <div class="form-group">
-            <label>Description</label>
-            <textarea name="description"></textarea>
-        </div>
-        <div class="form-group">
-            <label>Project Due Date</label>
-            <input type="date" name="due_date">
-        </div>
-        <button type="submit">Create Project & Continue</button>
-        <a href="index.php" style="margin-left: 10px; color: #666; text-decoration: none;">Cancel</a>
-    </form>
-</div>
+    </div>
 </body>
 </html>
