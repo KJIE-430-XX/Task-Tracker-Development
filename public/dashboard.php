@@ -10,7 +10,6 @@ if (!isset($_SESSION['user_id'])) {
 require_once 'db.php';
 $user_id = $_SESSION['user_id'];
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -41,6 +40,10 @@ $user_id = $_SESSION['user_id'];
             </p>
 
             <div class="header-actions">
+
+                <a href="index.php" class="index-btn">
+                    ⌂ Home
+                </a>
 
                 <a href="project_create.php" class="create-btn">
                     + Create Project
