@@ -1,67 +1,163 @@
 <?php
 session_start();
 
-// Check if user is logged in
+// Auth guard - verify user is logged in
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit;
 }
+
+require_once 'db.php';
+$user_id = $_SESSION['user_id'];
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Dashboard</title>
-    <link rel="stylesheet" href="assets/css/common.css">
+
     <link rel="stylesheet" href="assets/css/dashboard.css">
-    <style>
-        .profile-card {
-            background: #fff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            max-width: 500px;
-            margin: 40px auto;
-        }
-        .user-meta {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 6px;
-            margin: 20px 0;
-            border-left: 4px solid #007bff;
-        }
-        .user-meta p { margin: 8px 0; font-size: 15px; }
-        .nav-actions { display: flex; gap: 15px; margin-top: 25px; }
-        .btn {
-            display: inline-block;
-            padding: 10px 20px;
-            text-decoration: none;
-            border-radius: 4px;
-            font-weight: bold;
-            text-align: center;
-        }
-        .btn-home { background: #007bff; color: #fff; flex: 2; }
-        .btn-home:hover { background: #0056b3; }
-        .btn-logout { background: #dc3545; color: #fff; flex: 1; }
-        .btn-logout:hover { background: #bd2130; }
-    </style>
+
 </head>
+
 <body>
+
     <div class="container">
-        <div class="profile-card">
-            <h1>Welcome, <?php echo htmlspecialchars($_SESSION['name']); ?>!</h1>
-            <p style="color: #666;">You are successfully logged in.</p>
-            
-            <div class="user-meta">
-                <p>👤 <strong>Name:</strong> <?php echo htmlspecialchars($_SESSION['name']); ?></p>
-                <p>🏷️ <strong>Username:</strong> <?php echo htmlspecialchars($_SESSION['username']); ?></p>
+
+        <!-- Header -->
+
+        <div class="header">
+
+            <h1>Task Management System</h1>
+
+            <p class="dashboard-subtitle">
+                Manage your company tasks efficiently and stay productive.
+            </p>
+
+            <div class="header-actions">
+
+                <a href="project_create.php" class="create-btn">
+                    + Create Project
+                </a>
+
+                <a href="logout.php" class="logout-btn">
+                    Logout
+                </a>
+
             </div>
 
-            <div class="nav-actions">
-                <a href="index.php" class="btn btn-home">🏠 Back to Homepage Hub</a>
-                <a href="logout.php" class="btn btn-logout">Logout</a>
-            </div>
         </div>
+
+        <!-- Task Dashboard Section -->
+
+<div class="task-dashboard">
+
+    <h2>My Tasks</h2>
+
+    <div class="task-card">
+
+        <div class="task-info">
+
+            <h3>Software Engineering Report</h3>
+            <p>Complete the reflective report documentation.</p>
+        </div>
+
+        <span class="status in-progress">
+            In Progress
+        </span>
+
     </div>
+
+    <div class="task-card">
+
+        <div class="task-info">
+            <h3>Database Setup</h3>
+            <p>Configure MySQL database tables.</p>
+        </div>
+
+        <span class="status done">
+            Done
+        </span>
+
+    </div>
+
+    <div class="task-card">
+
+        <div class="task-info">
+            <h3>UI Design</h3>
+            <p>Improve dashboard appearance and layout.</p>
+        </div>
+
+        <span class="status pending">
+            Pending
+        </span>
+
+    </div>
+
+</div>
+
+    </div>
+
+
+            <!-- Task Card -->
+
+           
+
+                <span class="status in-progress">
+                    In Progress
+                </span>
+
+            </div>
+
+            <!-- Task Card -->
+
+            <div class="task-card">
+
+                <div class="task-info">
+
+                    <h3>Database Integration</h3>
+
+                    <p>
+                        Connect tasks from database into dashboard.
+                    </p>
+
+                </div>
+
+                <span class="status pending">
+                    Pending
+                </span>
+
+            </div>
+
+            <!-- Task Card -->
+
+            <div class="task-card">
+
+                <div class="task-info">
+
+                    <h3>Responsive Design</h3>
+
+                    <p>
+                        Optimize dashboard for mobile devices.
+                    </p>
+
+                </div>
+
+                <span class="status done">
+                    Done
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
 </body>
+
 </html>

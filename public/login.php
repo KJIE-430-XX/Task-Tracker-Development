@@ -35,8 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         $_SESSION['name'] = $user['name'];
 
                         $stmt->close();
-                        // 🔗 LOGICAL LINK: Send directly to project board listing directory
-                        header("Location: index.php");
+                        header("Location: dashboard.php");
                         exit;
                     } else {
                         $message = "Invalid username or password!";
