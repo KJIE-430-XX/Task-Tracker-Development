@@ -59,58 +59,92 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_member'])) {
     }
 }
 
-$mem_query = $conn->prepare("SELECT users.id, users.name, users.email, project_members.role FROM project_members JOIN users ON project_members.user_id = users.id WHERE project_members.project_id = ?");
+// Fetch current project members
+$mem_query = $conn->prepare("
+    SELECT users.id, users.name, users.email, project_members.role 
+    FROM project_members 
+    JOIN users ON project_members.user_id = users.id 
+    WHERE project_members.project_id = ?
+    ORDER BY CASE WHEN project_members.role = 'owner' THEN 0 ELSE 1 END, users.name ASC
+");
 $mem_query->bind_param("i", $project_id);
 $mem_query->execute();
 $members = $mem_query->get_result()->fetch_all(MYSQLI_ASSOC);
 $mem_query->close();
 
-$all_users = $conn->query("SELECT id, name FROM users")->fetch_all(MYSQLI_ASSOC);
+// Fetch users not already in the project to show in dropdown
+$member_ids = array_column($members, 'id');
+$placeholders = implode(',', array_fill(0, count($member_ids), '?'));
+
+$non_members_query = "SELECT id, name, email FROM users WHERE id NOT IN ($placeholders) ORDER BY name ASC";
+$non_members_stmt = $conn->prepare($non_members_query);
+$non_members_stmt->bind_param(str_repeat('i', count($member_ids)), ...$member_ids);
+$non_members_stmt->execute();
+$available_users = $non_members_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$non_members_stmt->close();
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Manage Project Team</title>
-    <link rel="stylesheet" href="assets/css/common.css">
-    <link rel="stylesheet" href="assets/css/index.css">
-    <style>
-        .team-box { background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ddd;}
-        .member-card { background: white; padding: 10px; margin: 5px 0; border-radius: 4px; border-left: 4px solid #007bff; display:flex; justify-content: space-between; align-items: center; }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Project Team – <?php echo htmlspecialchars($project['name']); ?></title>
+    <link rel="stylesheet" href="assets/css/project-manage.css">
 </head>
 <body>
-<div class="container">
-    <div class="header">
-        <h1>👥 Manage Team: <?php echo htmlspecialchars($project['name']); ?></h1>
-        <a href="project_view.php?project_id=<?php echo $project_id; ?>" class="btn btn-secondary">Back to Project Workspace</a>
+<div class="pm-container">
+    <div class="pm-header">
+        <h1>
+            <span class="accent">👥</span> 
+            Manage Team: <?php echo htmlspecialchars($project['name']); ?>
+        </h1>
+        <div class="pm-header-buttons">
+            <a href="project_view.php?project_id=<?php echo $project_id; ?>" class="btn btn-back">← Project Board</a>
+        </div>
     </div>
 
-    <?php if(!empty($error)): ?><div class="alert alert-error" style="color:red; margin-bottom: 15px;"><?php echo htmlspecialchars($error); ?></div><?php endif; ?>
-    <?php if(!empty($success)): ?><div class="alert alert-success" style="color:green; margin-bottom: 15px;"><?php echo htmlspecialchars($success); ?></div><?php endif; ?>
+    <?php if(!empty($error)): ?>
+        <div class="pm-alert pm-alert-error">⚠️ <?php echo htmlspecialchars($error); ?></div>
+    <?php endif; ?>
+    <?php if(!empty($success)): ?>
+        <div class="pm-alert pm-alert-success">✅ <?php echo htmlspecialchars($success); ?></div>
+    <?php endif; ?>
 
-    <div class="team-box">
-        <h3>Invite a Team Member</h3>
+    <!-- Add Member Card -->
+    <div class="pm-card">
+        <h2>Invite a Team Member</h2>
         <form method="POST">
             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generateCSRFToken()); ?>">
-            <select name="user_id" style="padding: 10px; width: 250px; border-radius: 4px; border: 1px solid #ccc;" required>
-                <option value="">-- Select User --</option>
-                <?php foreach ($all_users as $u): ?>
-                    <option value="<?php echo $u['id']; ?>"><?php echo htmlspecialchars($u['name']); ?></option>
-                <?php endforeach; ?>
-            </select>
-            <button type="submit" name="add_member" class="btn btn-primary" style="padding:10px 15px; margin-left: 5px;">Add to Project</button>
+            <div class="form-group">
+                <select name="user_id" class="form-select" required>
+                    <option value="">-- Select User --</option>
+                    <?php foreach ($available_users as $u): ?>
+                        <option value="<?php echo $u['id']; ?>"><?php echo htmlspecialchars($u['name']); ?> (<?php echo htmlspecialchars($u['email']); ?>)</option>
+                    <?php endforeach; ?>
+                </select>
+                <button type="submit" name="add_member" class="btn btn-primary">Add to Project</button>
+            </div>
         </form>
     </div>
 
-    <h2>Current Team Members</h2>
-    <div>
-        <?php foreach ($members as $m): ?>
-            <div class="member-card">
-                <strong><?php echo htmlspecialchars($m['name']); ?> (<?php echo htmlspecialchars(ucfirst($m['role'] ?? 'member')); ?>)</strong>
-                <span style="color:#666; font-size:13px;"><?php echo htmlspecialchars($m['email']); ?></span>
-            </div>
-        <?php endforeach; ?>
+    <!-- Current Members List -->
+    <div class="pm-card">
+        <h2>Current Team Members (<?php echo count($members); ?>)</h2>
+        <div class="member-list">
+            <?php foreach ($members as $m): ?>
+                <div class="member-item">
+                    <div class="member-info">
+                        <span class="member-name">
+                            <?php echo htmlspecialchars($m['name']); ?>
+                            <span class="role-badge role-<?php echo htmlspecialchars($m['role']); ?>">
+                                <?php echo htmlspecialchars(ucfirst($m['role'] ?? 'member')); ?>
+                            </span>
+                        </span>
+                        <span class="member-email"><?php echo htmlspecialchars($m['email']); ?></span>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
     </div>
 </div>
 </body>

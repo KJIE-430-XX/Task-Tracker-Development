@@ -76,47 +76,52 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <link rel="stylesheet" href="assets/css/auth.css">
 </head>
 <body>
-    <h1>Register</h1>
-
-    <?php if ($message): ?>
-        <div class="message <?php echo (strpos($message, 'successful') !== false) ? 'success' : 'error'; ?>">
-            <?php echo htmlspecialchars($message); ?>
+    <div class="auth-container">
+        <div class="system-title">
+            <span class="pro">Pro</span><span class="manage">Manage</span>
         </div>
-    <?php endif; ?>
+        <h1>Register</h1>
 
-    <form method="POST">
-        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generateCSRFToken()); ?>">
-        
-        <div class="form-group">
-            <label for="name">Full Name:</label>
-            <input type="text" id="name" name="name" required>
+        <?php if ($message): ?>
+            <div class="message <?php echo (strpos($message, 'successful') !== false) ? 'success' : 'error'; ?>">
+                <?php echo htmlspecialchars($message); ?>
+            </div>
+        <?php endif; ?>
+
+        <form method="POST">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generateCSRFToken()); ?>">
+            
+            <div class="form-group">
+                <label for="name">Full Name:</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+
+            <div class="form-group">
+                <label for="confirm_password">Confirm Password:</label>
+                <input type="password" id="confirm_password" name="confirm_password" required>
+            </div>
+
+            <button type="submit">Register</button>
+        </form>
+
+        <div class="link">
+            Already have an account? <a href="login.php">Login here</a>
         </div>
-
-        <div class="form-group">
-            <label for="email">Email:</label>
-            <input type="email" id="email" name="email" required>
-        </div>
-
-        <div class="form-group">
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required>
-        </div>
-
-        <div class="form-group">
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
-        </div>
-
-        <div class="form-group">
-            <label for="confirm_password">Confirm Password:</label>
-            <input type="password" id="confirm_password" name="confirm_password" required>
-        </div>
-
-        <button type="submit">Register</button>
-    </form>
-
-    <div class="link">
-        Already have an account? <a href="login.php">Login here</a>
     </div>
 </body>
 </html>
