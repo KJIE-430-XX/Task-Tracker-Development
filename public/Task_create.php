@@ -21,7 +21,6 @@ if ($project_id === 0) {
 
 // Fetch the current project's name and its due date to validate against
 $user_id = $_SESSION['user_id'];
-// 🔥 UPDATED: Selecting p.due_date alongside the name
 $proj_stmt = $conn->prepare("
     SELECT p.name, p.due_date 
     FROM projects p 
@@ -36,6 +35,19 @@ $proj_stmt->close();
 if (!$project_data) {
     die("Error: Project workspace not found or you do not have permission to access it.");
 }
+
+// Fetch project members to assign the task to
+$members_stmt = $conn->prepare("
+    SELECT u.id, u.name, u.email 
+    FROM project_members pm 
+    JOIN users u ON pm.user_id = u.id 
+    WHERE pm.project_id = ? 
+    ORDER BY u.name ASC
+");
+$members_stmt->bind_param("i", $project_id);
+$members_stmt->execute();
+$project_members = $members_stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$members_stmt->close();
 
 // Fetch valid statuses and priorities from database
 $status_list = [];
@@ -71,6 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $description = trim($_POST['description']);
         $priority_id = (int)($_POST['priority_id'] ?? 0); 
         $status_id = (int)($_POST['status_id'] ?? 0);     
+        $assignee_id = !empty($_POST['assignee_id']) ? (int)$_POST['assignee_id'] : null;
         $due_date = !empty($_POST['due_date']) ? $_POST['due_date'] : null;
 
         if (empty($title)) {
@@ -80,35 +93,74 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         } elseif (!isset($priority_list[$priority_id])) {
             $error = "Invalid priority selected.";
         } 
-        // 🔥 NEW: Backend Validation Rule - Compare Task due date against Project deadline
-        elseif ($due_date !== null && $project_data['due_date'] !== null && strtotime($due_date) > strtotime($project_data['due_date'])) {
-            $error = "Task due date cannot be later than the project deadline (" . date('M d, Y', strtotime($project_data['due_date'])) . ").";
-        } else {
-            $stmt = $conn->prepare("
-                INSERT INTO tasks 
-                (created_by, project_id, title, description, status_id, priority_id, due_date, created_at, updated_at) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
-            ");
-
-            $stmt->bind_param(
-                "iissiis",
-                $user_id,
-                $project_id,
-                $title,
-                $description,
-                $status_id,
-                $priority_id,
-                $due_date
-            );
-
-            if ($stmt->execute()) {
-                $_SESSION['success'] = "Task created successfully!";
-                header("Location: project_view.php?project_id=" . $project_id);
-                exit;
-            } else {
-                $error = "Error creating task: " . $stmt->error;
+        // Validate assignee is part of the project members
+        elseif ($assignee_id !== null) {
+            $is_member = false;
+            foreach ($project_members as $m) {
+                if ($m['id'] === $assignee_id) {
+                    $is_member = true;
+                    break;
+                }
             }
-            $stmt->close();
+            if (!$is_member) {
+                $error = "Invalid assignee selected. User must be a member of the project workspace.";
+            }
+        }
+        
+        if (empty($error)) {
+            // Check task due date against project deadline
+            if ($due_date !== null && $project_data['due_date'] !== null && strtotime($due_date) > strtotime($project_data['due_date'])) {
+                $error = "Task due date cannot be later than the project deadline (" . date('M d, Y', strtotime($project_data['due_date'])) . ").";
+            } else {
+                try {
+                    $conn->begin_transaction();
+
+                    $stmt = $conn->prepare("
+                        INSERT INTO tasks 
+                        (created_by, project_id, title, description, status_id, priority_id, due_date, created_at, updated_at) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+                    ");
+
+                    $stmt->bind_param(
+                        "iissiis",
+                        $user_id,
+                        $project_id,
+                        $title,
+                        $description,
+                        $status_id,
+                        $priority_id,
+                        $due_date
+                    );
+
+                    if ($stmt->execute()) {
+                        $task_id = $stmt->insert_id;
+                        $stmt->close();
+
+                        // If assignee is specified, insert into task_assignees
+                        if ($assignee_id !== null) {
+                            $assign_stmt = $conn->prepare("
+                                INSERT INTO task_assignees (task_id, project_id, user_id) 
+                                VALUES (?, ?, ?)
+                            ");
+                            $assign_stmt->bind_param("iii", $task_id, $project_id, $assignee_id);
+                            if (!$assign_stmt->execute()) {
+                                throw new Exception("Failed to assign user to task: " . $assign_stmt->error);
+                            }
+                            $assign_stmt->close();
+                        }
+
+                        $conn->commit();
+                        $_SESSION['success'] = "Task created successfully!";
+                        header("Location: project_view.php?project_id=" . $project_id);
+                        exit;
+                    } else {
+                        throw new Exception("Error creating task: " . $stmt->error);
+                    }
+                } catch (Exception $e) {
+                    $conn->rollback();
+                    $error = $e->getMessage();
+                }
+            }
         }
     }
 }
@@ -118,77 +170,95 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Create Task</title>
-    <link rel="stylesheet" href="assets/css/common.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Task – ProManage</title>
     <link rel="stylesheet" href="assets/css/task-create.css">
 </head>
 <body>
 <div class="container">
-    <h1>Create New Task</h1>
-    <div class="welcome">Welcome, <?php echo htmlspecialchars($_SESSION['name'] ?? 'User'); ?>!</div>
+    <div class="form-container">
+        <div class="form-header">
+            <h1>Create New Task</h1>
+            <p class="form-subtitle">Add a task to the project workspace</p>
+        </div>
 
-    <?php if (!empty($error)): ?>
-        <div class="alert alert-error"><?php echo htmlspecialchars($error); ?></div>
-    <?php endif; ?>
+        <?php if (!empty($error)): ?>
+            <div class="alert alert-error">⚠️ <?php echo htmlspecialchars($error); ?></div>
+        <?php endif; ?>
 
-    <form method="POST">
-        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generateCSRFToken()); ?>">
-        
-        <input type="hidden" name="project_id" value="<?php echo $project_id; ?>">
+        <form method="POST">
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars(generateCSRFToken()); ?>">
+            <input type="hidden" name="project_id" value="<?php echo $project_id; ?>">
 
-        <div class="form-group">
-            <label>Project Workspace</label>
-            <div style="background: #eef1f6; padding: 12px; border-radius: 6px; font-weight: bold; border: 1px solid #ccc; color: #333;">
-                📁 <?php echo htmlspecialchars($project_data['name']); ?> 
-                <?php if ($project_data['due_date']): ?>
-                    <span style="font-weight: normal; color: #666; font-size: 13px; margin-left: 10px;">
-                        (Deadline: <?php echo date('M d, Y', strtotime($project_data['due_date'])); ?>)
-                    </span>
-                <?php endif; ?>
+            <div class="form-group">
+                <label>Project Workspace</label>
+                <div class="static-field">
+                    <strong>📁 <?php echo htmlspecialchars($project_data['name']); ?></strong>
+                    <?php if ($project_data['due_date']): ?>
+                        <span style="float: right; font-size: 13px;">
+                            Deadline: <?php echo date('M d, Y', strtotime($project_data['due_date'])); ?>
+                        </span>
+                    <?php endif; ?>
+                </div>
             </div>
-        </div>
 
-        <div class="form-group">
-            <label>Task Title *</label>
-            <input type="text" name="title" maxlength="255" required>
-        </div>
+            <div class="form-group">
+                <label for="title">Task Title <span class="required">*</span></label>
+                <input type="text" id="title" name="title" placeholder="Enter task title" maxlength="255" required value="<?php echo isset($_POST['title']) ? htmlspecialchars($_POST['title']) : ''; ?>">
+            </div>
 
-        <div class="form-group">
-            <label>Description</label>
-            <textarea name="description" maxlength="1000"></textarea>
-        </div>
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" name="description" placeholder="Describe the task details..." maxlength="1000"><?php echo isset($_POST['description']) ? htmlspecialchars($_POST['description']) : ''; ?></textarea>
+            </div>
 
-        <div class="form-group">
-            <label>Status</label>
-            <select name="status_id">
-                <?php foreach ($status_list as $id => $name): ?>
-                    <option value="<?php echo $id; ?>" <?php echo ($id === 1) ? 'selected' : ''; ?>>
-                        <?php echo htmlspecialchars($name); ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </div>
+            <div class="form-group">
+                <label for="assignee_id">Assignee</label>
+                <select id="assignee_id" name="assignee_id">
+                    <option value="">-- Unassigned --</option>
+                    <?php foreach ($project_members as $member): ?>
+                        <option value="<?php echo $member['id']; ?>" <?php echo (isset($_POST['assignee_id']) && (int)$_POST['assignee_id'] === $member['id']) ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($member['name']); ?> (<?php echo htmlspecialchars($member['email']); ?>)
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
 
-        <div class="form-group">
-            <label>Priority</label>
-            <select name="priority_id">
-                <?php foreach ($priority_list as $id => $name): ?>
-                    <option value="<?php echo $id; ?>" <?php echo ($id === 3) ? 'selected' : ''; ?>>
-                        <?php echo htmlspecialchars($name); ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </div>
+            <div class="form-group">
+                <label for="status_id">Status</label>
+                <select id="status_id" name="status_id">
+                    <?php foreach ($status_list as $id => $name): ?>
+                        <option value="<?php echo $id; ?>" <?php echo (isset($_POST['status_id']) ? (int)$_POST['status_id'] === $id : $id === 2) ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($name); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
 
-        <div class="form-group">
-            <label>Due Date</label>
-            <input type="date" name="due_date" 
-                   <?php if ($project_data['due_date']): ?> max="<?php echo $project_data['due_date']; ?>" <?php endif; ?>>
-        </div>
+            <div class="form-group">
+                <label for="priority_id">Priority</label>
+                <select id="priority_id" name="priority_id">
+                    <?php foreach ($priority_list as $id => $name): ?>
+                        <option value="<?php echo $id; ?>" <?php echo (isset($_POST['priority_id']) ? (int)$_POST['priority_id'] === $id : $id === 3) ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($name); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
 
-        <button type="submit">Create Task</button>
-        <a href="project_view.php?project_id=<?php echo $project_id; ?>" style="margin-left:15px; color:#666; text-decoration:none;">Cancel</a>
-    </form>
+            <div class="form-group">
+                <label for="due_date">Due Date</label>
+                <input type="date" id="due_date" name="due_date" 
+                       value="<?php echo isset($_POST['due_date']) ? htmlspecialchars($_POST['due_date']) : ''; ?>"
+                       <?php if ($project_data['due_date']): ?> max="<?php echo $project_data['due_date']; ?>" <?php endif; ?>>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">Create Task</button>
+                <a href="project_view.php?project_id=<?php echo $project_id; ?>" class="btn-secondary">Cancel</a>
+            </div>
+        </form>
+    </div>
 </div>
 </body>
 </html>
