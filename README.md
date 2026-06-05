@@ -1,9 +1,9 @@
-# Task Tracker Web Application
+# BAI21113 SE Assignment
 # Project Management System
 
 ## Purpose
 
-This project is an internal web-based project management system designed to help teams efficiently organize and manage projects within a company environment. Users first create a high-level project before creating, assigning, prioritizing, and tracking individual tasks within it. By monitoring task progress through stages such as “To Do,” “In Progress,” and “Done,” the system provides clear project visibility, enhances team collaboration, improves workflow organization, and increases overall productivity.
+This project is an internal web-based project management system designed to help teams efficiently organize and manage projects within a company environment. Users first create a high-level project before creating, assigning, prioritizing, and tracking individual tasks within it. By monitoring task progress through stages such as “To Do” “Pending” and “Completed” the system provides clear project visibility, enhances team collaboration, improves workflow organization, and increases overall productivity.
 
 ## Introduction
 This system is called ‘ProManage’, which represents organizing, assigning, and delivering. This name also reflects the system's goal of providing a professional and efficient way to manage projects, teams, and tasks. It combines the concepts of project management, productivity, and professional collaboration into a simple and memorable name.
@@ -95,11 +95,32 @@ This project uses **XAMPP** to provide a local development environment with Apac
 
 ```
 Task-Tracker-Development/
-├── public/          # Publicly accessible files (login, register, dashboard, etc.)
-├── src/             # Source code and utilities
-├── database/        # Database schema
-├── docs/            # Documentation
-└── tests/           # Test files
+├── database/
+│   ├── schema.sql              # SQL qeury for database and tables
+│   └── setup.php               # PHP script to run the SQL queries
+├── public/
+│   ├── assets/
+│   │   css/                    # CSS files for styling
+│   │   ├── auth.css            # Authentication styles (login/register)
+│   │   ├── common.css            # Common styles for all pages
+│   │   ├── dashboard.css         # Dashboard styles
+│   │   ├── index.css           # Index page styles
+│   │   ├── project-manage.css    # Project management styles
+│   │   ├── project-view.css    # Project view styles
+│   │   └── task-create.css     # Task creation styles
+│   ├── csrf.php               # CSRF protection
+│   ├── dashboard.php           # Dashboard page
+│   ├── db.php                  # Database connection
+│   ├── index.php               # Index page
+│   ├── login.php               # Login page
+│   ├── logout.php              # Logout page
+│   ├── project_create.php      # Project creation page
+│   ├── project_manage.php      # Project management page
+│   ├── project_view.php        # Project view page
+│   ├── register.php            # Register page
+│   ├── Task_create.php         # Task creation page
+│   └── update_task_status.php  # Update task status page
+└── README.md                   # Project README file
 ```
 
 ## SCRUM Development Iterations
