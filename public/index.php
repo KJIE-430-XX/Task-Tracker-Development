@@ -88,22 +88,7 @@ if ($isLoggedIn) {
     <?php if ($isLoggedIn): ?>
       <div class="tasks-section">
         <h2>Your Active Workspaces</h2>
-        <?php if (count($projects) > 0): ?>
-          <div class="project-list">
-            <?php foreach ($projects as $p): ?>
-              <div class="project-card">
-                <a href="project_view.php?project_id=<?php echo $p['id']; ?>" style="font-size: 18px; font-weight: bold; color: #007bff; text-decoration: none;">
-                  📁 <?php echo htmlspecialchars($p['name']); ?>
-                </a>
-                <p style="font-size:13px; color:#555; margin-top:5px;">
-                  <?php echo htmlspecialchars(($p['description'] ?? '') ?: 'No Description Provided.'); ?>
-                </p>
-              </div>
-            <?php endforeach; ?>
-          </div>
-        <?php else: ?>
-          <p>No projects found. Create one to get started!</p>
-        <?php endif; ?>
+          <p>Comming Soon!</p>
       </div>
     <?php else: ?>
       <div style="text-align: center; padding: 40px; background: #f8f9fa; border-radius: 8px;">
