@@ -1,22 +1,14 @@
 <?php
 session_start();
-require_once 'db.php';
 
-$user_id = $_SESSION['user_id'];
-
-$stmt = $conn->prepare("
-    SELECT *
-    FROM tasks
-    ORDER BY created_at DESC
-");
-
-$stmt->execute();
-
-$result = $stmt->get_result();
+// Auth guard - verify user is logged in
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit;
 }
+
+require_once 'db.php';
+$user_id = $_SESSION['user_id'];
 ?>
 
 <!DOCTYPE html>
@@ -51,7 +43,7 @@ if (!isset($_SESSION['user_id'])) {
             <div class="header-actions">
 
                 <a href="project_create.php" class="create-btn">
-                    + Create Task
+                    + Create Project
                 </a>
 
                 <a href="logout.php" class="logout-btn">
